@@ -32,7 +32,7 @@
       },
       "vars": {
         "PARENT_ORIGIN": "https://endless.thick.stream",
-        "UNSAFE_CSP": true,
+        "UNSAFE_CSP": false,
       },
       "routes": [
         {
