@@ -1,5 +1,6 @@
 import { decodeYTHash } from "./yt-hash";
 import { YTMessage } from "./yt-message";
+import { isYTParentMessage } from "./yt-parent-message";
 
 const YOUTUBE_IFRAME_API_HREF = "https://www.youtube.com/iframe_api";
 
@@ -31,18 +32,33 @@ function ytMain() {
         rel: 0,
       },
     });
-    player.addEventListener("onReady", function (event) {
+
+    window.addEventListener("message", function onMessage(event) {
+      if (
+        !event.isTrusted ||
+        event.origin !== import.meta.env.VITE_PARENT_ORIGIN ||
+        !isYTParentMessage(event.data)
+      ) {
+        return;
+      }
+      console.log("%o", event.data.payload);
+    });
+
+    player.addEventListener("onReady", onReady.bind(player));
+    function onReady(this: typeof player) {
+      this.removeEventListener("onReady", onReady);
       window.parent.postMessage(
         {
           source: "endless-yt",
           payload: {
-            duration: event.target.getDuration(),
+            type: "ready",
           },
         } satisfies YTMessage,
         import.meta.env.VITE_PARENT_ORIGIN,
       );
-    });
+    }
   };
+
   const tag = document.createElement("script");
   tag.src = YOUTUBE_IFRAME_API_HREF;
   const firstScriptTag = document.getElementsByTagName("script")[0];
