@@ -11,3 +11,10 @@ export function forbidden() {
     statusText: "Forbidden",
   });
 }
+
+export function methodNotAllowed() {
+  return new Response("", {
+    status: 405,
+    statusText: "Method Not Allowed",
+  });
+}
