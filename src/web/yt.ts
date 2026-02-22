@@ -1,5 +1,8 @@
-import { YTMessage } from "./yt-message";
-import { isYTParentMessage } from "./yt-parent-message";
+import { YTReadyMessage } from "./yt-message";
+import {
+  isYTParentNowPlayingMessage,
+  isYTParentUnknownMessage,
+} from "./yt-parent-message";
 
 const YOUTUBE_IFRAME_API_HREF = "https://www.youtube.com/iframe_api";
 
@@ -24,11 +27,24 @@ async function ytMain(): Promise<void> {
     if (
       !event.isTrusted ||
       event.origin !== import.meta.env.VITE_PARENT_ORIGIN ||
-      !isYTParentMessage(event.data)
+      !isYTParentUnknownMessage(event.data)
     ) {
       return;
     }
-    console.log("%o", event.data.payload);
+    if (isYTParentNowPlayingMessage(event.data)) {
+      const video = event.data.payload.video;
+      if (video != null) {
+        console.log(Date.now());
+        console.log(video.startTimestampMilliseconds);
+        player.loadVideoById(
+          video.ytVideoId,
+          video.startSeekSeconds +
+            Math.max((Date.now() - video.startTimestampMilliseconds) / 1000, 0),
+        );
+      } else {
+        player.stopVideo();
+      }
+    }
   });
 
   window.parent.postMessage(
@@ -37,11 +53,9 @@ async function ytMain(): Promise<void> {
       payload: {
         type: "ready",
       },
-    } satisfies YTMessage,
+    } satisfies YTReadyMessage,
     import.meta.env.VITE_PARENT_ORIGIN,
   );
-
-  player.cueVideoById("vgZtjULJvkU", 30);
 
   logPlayerState(player);
   player.addEventListener("onStateChange", function onStateChange(event) {

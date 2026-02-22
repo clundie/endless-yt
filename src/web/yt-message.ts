@@ -1,39 +1,31 @@
-export interface YTMessage {
+export interface YTUnknownMessage {
   source: "endless-yt";
-  payload: YTPayload;
+  payload: {
+    type: string;
+  };
 }
 
-export type YTPayload = YTReadyPayload;
-
-export interface YTReadyPayload {
-  type: "ready";
-}
-
-export function isYTMessage(obj: unknown): obj is YTMessage {
+export function isYTUnknownMessage(obj: unknown): obj is YTUnknownMessage {
   return (
     obj != null &&
     typeof obj === "object" &&
     "source" in obj &&
     obj.source === "endless-yt" &&
     "payload" in obj &&
-    isYTUnknownPayload(obj.payload) &&
-    isYTReadyPayload(obj.payload)
+    obj.payload != null &&
+    typeof obj.payload === "object" &&
+    "type" in obj.payload &&
+    typeof obj.payload.type === "string"
   );
 }
 
-interface YTUnknownPayload {
-  type: string;
+export interface YTReadyMessage {
+  source: "endless-yt";
+  payload: {
+    type: "ready";
+  };
 }
 
-function isYTUnknownPayload(obj: unknown): obj is YTUnknownPayload {
-  return (
-    obj != null &&
-    typeof obj === "object" &&
-    "type" in obj &&
-    typeof obj.type === "string"
-  );
-}
-
-function isYTReadyPayload(obj: YTUnknownPayload): obj is YTReadyPayload {
-  return obj.type === "ready";
+export function isYTReadyMessage(obj: YTUnknownMessage): obj is YTReadyMessage {
+  return obj.payload.type === "ready";
 }

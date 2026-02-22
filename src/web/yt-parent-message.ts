@@ -1,41 +1,68 @@
-export interface YTParentMessage {
+export interface YTParentUnknownMessage {
   source: "endless-yt-parent";
-  payload: YTParentPayload;
+  payload: {
+    type: string;
+  };
 }
 
-export type YTParentPayload = YTParentReadyPayload;
+export type YTParentAnyMessage =
+  | YTParentReadyMessage
+  | YTParentNowPlayingMessage;
 
-export interface YTParentReadyPayload {
-  type: "parent-ready";
-}
-
-export function isYTParentMessage(obj: unknown): obj is YTParentMessage {
+export function isYTParentUnknownMessage(
+  obj: unknown,
+): obj is YTParentUnknownMessage {
   return (
     obj != null &&
     typeof obj === "object" &&
     "source" in obj &&
     obj.source === "endless-yt-parent" &&
     "payload" in obj &&
-    isYTParentUnknownPayload(obj.payload) &&
-    isYTParentReadyPayload(obj.payload)
+    obj.payload != null &&
+    typeof obj.payload === "object" &&
+    "type" in obj.payload &&
+    typeof obj.payload.type === "string"
   );
 }
 
-interface YTParentUnknownPayload {
-  type: string;
+export interface YTParentReadyMessage {
+  source: "endless-yt-parent";
+  payload: {
+    type: "parent-ready";
+  };
 }
 
-function isYTParentUnknownPayload(obj: unknown): obj is YTParentUnknownPayload {
+export function isYTParentReadyMessage(
+  obj: YTParentUnknownMessage,
+): obj is YTParentReadyMessage {
+  return obj.payload.type === "parent-ready";
+}
+
+export interface YTParentNowPlayingMessage {
+  source: "endless-yt-parent";
+  payload: {
+    type: "now-playing";
+    video: {
+      ytVideoId: string;
+      startSeekSeconds: number;
+      startTimestampMilliseconds: number;
+    } | null;
+  };
+}
+
+export function isYTParentNowPlayingMessage(
+  obj: YTParentUnknownMessage,
+): obj is YTParentNowPlayingMessage {
   return (
-    obj != null &&
-    typeof obj === "object" &&
-    "type" in obj &&
-    typeof obj.type === "string"
+    obj.payload.type === "now-playing" &&
+    "video" in obj.payload &&
+    typeof obj.payload.video === "object" &&
+    (obj.payload.video == null ||
+      ("ytVideoId" in obj.payload.video &&
+        typeof obj.payload.video.ytVideoId === "string" &&
+        "startSeekSeconds" in obj.payload.video &&
+        Number.isFinite(obj.payload.video.startSeekSeconds) &&
+        "startTimestampMilliseconds" in obj.payload.video &&
+        Number.isFinite(obj.payload.video.startTimestampMilliseconds)))
   );
-}
-
-function isYTParentReadyPayload(
-  obj: YTParentUnknownPayload,
-): obj is YTParentReadyPayload {
-  return obj.type === "parent-ready";
 }
