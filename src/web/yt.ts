@@ -50,11 +50,6 @@ async function ytMain(): Promise<void> {
 }
 
 function loadYTPlayer(parentElement: HTMLElement): Promise<YT.Player> {
-  const tag = document.createElement("script");
-  tag.src = YOUTUBE_IFRAME_API_HREF;
-  const firstScriptTag = document.getElementsByTagName("script")[0];
-  firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-
   return new Promise<YT.Player>(function (resolve) {
     const ytElement = document.createElement("div");
     parentElement.appendChild(ytElement);
@@ -82,6 +77,10 @@ function loadYTPlayer(parentElement: HTMLElement): Promise<YT.Player> {
         resolve(event.target);
       });
     };
+    const tag = document.createElement("script");
+    tag.src = YOUTUBE_IFRAME_API_HREF;
+    const firstScriptTag = document.getElementsByTagName("script")[0];
+    firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
   });
 }
 
